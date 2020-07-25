@@ -95,7 +95,9 @@ return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
 
 5. 扩容机制：map是当前容量翻倍，table是当前容量翻倍 + 1【为了保证奇数】
 
-6. 迭代器失效机制
+6. hashTable是线程安全的，hashMap不是线程安全的。
+
+7. 迭代器失效机制
 
    map中的Iterator迭代器是快速失败的【快速失败机制：遍历时如果数组变化，直接抛出异常Concurrent Modiication Exception】，而table的Enumerator是安全失败的【安全失败机制：在进行遍历前，把数组复制一份，读取复制的数组，坏处是可能会读到脏数据。】
 
@@ -281,7 +283,7 @@ ConcurrentHashMap是弱一致性的
 
     - 负数代表正在进行初始化或扩容操作
 - -1代表正在初始化
-    
+  
     - -N 表示有N-1个线程正在进行扩容操作
 - 正数或0代表hash表还没有被初始化，这个数值表示初始化或下一次进行扩容的大小，这一点类似于扩容阈值的概念。**它的值始终是当前ConcurrentHashMap容量的0.75倍，**这与loadfactor是对应的。
   
@@ -361,7 +363,6 @@ ConcurrentHashMap是弱一致性的
 
   进行此工作的唯一方法是在使用构造函数后，根据需要使用add（）多次。
   
-
 - JDK7和JDK8的区别
 
   - 1.7
