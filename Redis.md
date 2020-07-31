@@ -47,62 +47,7 @@ IO多路复用模型是建立在内核提供的多路分离函数select基础之
 
 ![img](https://img-blog.csdnimg.cn/20190516194238372.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2Rpd2Vpa2FuZw==,size_16,color_FFFFFF,t_70)
 
-​		I/O多路复用模型使用了Reactor设计模式实现了这一机制。通过Reactor的方式，可以将用户线程轮询I/O操作状态的工作统一交给handle_events事件循环进行处理。用户线程注册事件处理器之后可以继续执行做其他的工作（异步），而Reactor线程负责调用内核的select函数检查socket状态。当有socket被激活时，则通知相应的用户线程（或执行用户线程的回调函数），执行handle_event进行数据读取、处理的工作。由于select函数是阻塞的，因此多路I/O复用模型也被称为**异步阻塞I/O模型**。注意，这里的所说的阻塞是指select函数执行时线程被阻塞，而不是指socket。一般在使用I/O多路复用模型时，socket都是设置为NONBLOCK的，不过这并不会产生影响，因为用户发起I/O请求时，数据已经到达了，用户线程一定不会被阻塞。
-
-
-
-
-
-I/O多路复用这个概念被提出来以后， select是第一个实现 (1983 左右在BSD里面实现的)。
-
-**一、select** 被实现以后，很快就暴露出了很多问题。
-
-- select 会修改传入的参数数组，这个对于一个需要调用很多次的函数，是非常不友好的。
-- select 如果任何一个sock(I/O stream)出现了数据，select 仅仅会返回，但是并不会告诉你是那个sock上有数据，于是你只能自己一个一个的找，10几个sock可能还好，要是几万的sock每次都找一遍，这个无谓的开销就颇有海天盛筵的豪气了。
-- select 只能监视1024个链接， 这个跟草榴没啥关系哦，linux 定义在头文件中的，参见FD_SETSIZE。
-- select 不是线程安全的，如果你把一个sock加入到select, 然后突然另外一个线程发现，尼玛，这个sock不用，要收回。对不起，这个select 不支持的，如果你丧心病狂的竟然关掉这个sock, select的标准行为是。。呃。。不可预测的， 这个可是写在文档中的哦.
-
-“If a file descriptor being monitored by select() is closed in another thread, the result is unspecified”
-霸不霸气
-
-**二、于是14年以后(1997年）一帮人又实现了poll, poll 修复了select的很多问题**，比如
-
-- poll 去掉了1024个链接的限制，于是要多少链接呢， 主人你开心就好。
-- poll 从设计上来说，不再修改传入数组，不过这个要看你的平台了，所以行走江湖，还是小心为妙。
-
-**其实拖14年那么久也不是效率问题， 而是那个时代的硬件实在太弱，一台服务器处理1千多个链接简直就是神一样的存在了，select很长段时间已经满足需求。**
-
-但是**poll仍然不是线程安全的**， 这就意味着，不管服务器有多强悍，你也只能在一个线程里面处理一组I/O流。你当然可以那多进程来配合了，不过然后你就有了多进程的各种问题。
-
-于是5年以后, 在2002, 大神 Davide Libenzi 实现了epoll.
-
-**三、epoll 可以说是I/O 多路复用最新的一个实现，epoll 修复了poll 和select绝大部分问题, 比如：**
-
-- epoll 现在是线程安全的。
-- epoll 现在不仅告诉你sock组里面数据，还会告诉你具体哪个sock有数据，你不用自己去找了。 
-
-可是epoll 有个致命的缺点，只有linux支持。比如BSD上面对应的实现是kqueue。
-
-其实有些国内知名厂商把epoll从安卓里面裁掉这种脑残的事情我会主动告诉你嘛。什么，你说没人用安卓做服务器，尼玛你是看不起p2p软件了啦。
-
-而ngnix 的设计原则里面， 它会使用目标平台上面最高效的I/O多路复用模型咯，所以才会有这个设置。一般情况下，如果可能的话，尽量都用epoll/kqueue吧。
-
-
-
-
-
-
-
-redis的io模型主要是基于epoll实现的，不过它也提供了 select和kqueue的实现，默认采用epoll。
-
-那么epoll到底是个什么东西呢？ 其实只是众多i/o多路复用技术当中的一种而已，但是相比其他io多路复用技术(select, poll等等)，epoll有诸多优点：
-  1. epoll 没有最大并发连接的限制，上限是最大可以打开文件的数目，这个数字一般远大于 2048, 一般来说这个数目和系统内存关系很大  ，具体数目可以 cat /proc/sys/fs/file-max 察看。
-
-  2. 效率提升， Epoll 最大的优点就在于它只管你“活跃”的连接 ，而跟连接总数无关，因此在实际的网络环境中， Epoll 的效率就会远远高于 select 和 poll 。
-
-  3. 内存拷贝， Epoll 在这点上使用了“共享内存 ”，这个内存拷贝也省略了。
-
-  
+​		I/O多路复用模型使用了Reactor设计模式实现了这一机制。通过Reactor的方式，可以将用户线程轮询I/O操作状态的工作统一交给handle_events事件循环进行处理。用户线程注册事件处理器之后可以继续执行做其他的工作（异步），而Reactor线程负责调用内核的select函数检查socket状态。当有socket被激活时，则通知相应的用户线程（或执行用户线程的回调函数），执行handle_event进行数据读取、处理的工作。由于select函数是阻塞的，因此多路I/O复用模型也被称为**异步阻塞I/O模型**。注意，这里的所说的阻塞是指select函数执行时线程被阻塞，而不是指socket。一般在使用I/O多路复用模型时，socket都是设置为NONBLOCK的，不过这并不会产生影响，因为用户发起I/O请求时，数据已经到达了，用户线程一定不会被阻塞。  
 
 ##  数据类型
 
@@ -690,7 +635,7 @@ appendfsync everysec  # 配置更新的方式，--always(一旦发生变化就�
 
      如果一个sentinel节点获得的选举票数达到Leader的最低票数`Math.max(quorum,Sentinel节点数 / 2  + 1)`， 则该sentinel节点选举为Leader，否则重新进行选举
 
-     ![在这里插入图片描述](E:\文档\学习资料\笔记\面经\Redis.assets\20190202175541832.png)
+     ![在这里插入图片描述](Redis.assets\20190202175541832.png)
 
   4. ### Sentinel Leader决定新主节点
 
