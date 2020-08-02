@@ -302,7 +302,7 @@ set lockTarget  12345 ex 10 nx                 #设置key为lockTarget，值为1
 
 ​		在这64个bit中，其中1个bit是不用的，然后其中的41bit作为毫秒数，用10bit作为工作机器id，12bit作为序列号。
 
-![img](E:\文档\学习资料\笔记\面经\Redis.assets\2019050514590789.png)
+![img](Redis.assets\2019050514590789.png)
 
 这个图片分析如下
 

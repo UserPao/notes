@@ -381,7 +381,7 @@ public ConfigurableApplicationContext run(String... args) {
 
    将类路径下META-INF/spring.factories里面配置的所有AutoConfiguration的值加入到容器中
 
-   ![img](E:\文档\学习资料\笔记\面经\Spring.assets\20180903142348288.png)
+   ![img](Spring.assets\20180903142348288.png)
 
    每一个这样的xxxAutoConfiguration类都是容器的一个组件，都加入到容器中，用他们来自动配置
 
@@ -390,13 +390,13 @@ public ConfigurableApplicationContext run(String... args) {
 4. 以HttpEncodingAutoConfiguration（Http编码自动配置）为例解释自动配置原理；
           一但这个配置类生效，这个配置类就会给容器中添加各种组件，这些组件的属性是从对应的properties类中获取的，这些类里面的每一个属性又是和配置文件绑定的；
 
-   ![img](E:\文档\学习资料\笔记\面经\Spring.assets\20180903143011204.png)
+   ![img](Spring.assets\20180903143011204.png)
 
      a、@Configuration //表示这是一个配置类，也可以给容器中添加组件
       b、@EnableConfigurationProperties//启动指定类的ConfigurationProperties功能；将配置文件中对应的值和HttpEncodingProperties绑定起来；并把HttpEncodingProperties加入到ioc容器中 。 
 
     所有在配置文件中能配置的属性都是在xxxxProperties类中封装着；该类中有什么属性，配置文件就可以配置什么；@ConfigurationProperties(prefix = "spring.http.encoding") //从配置文件中获取指定的值和bean的属性进行绑定。
-   ![img](E:\文档\学习资料\笔记\面经\Spring.assets\20180903143332472.png)
+   ![img](Spring.assets\20180903143332472.png)
 
     c、@ConditionalOnWebApplication //Spring底层@Conditional注解：根据不同的条件，如果满足指定的条件，整个配置类里面的配置就会生效； 判断当前应用是否是web应用，如果是，当前配置类生效
        d、@ConditionalOnClass(CharacterEncodingFilter.class) //判断当前项目有没有CharacterEncodingFilter这个类；CharacterEncodingFilter类是SpringMVC中进行乱码解决的过滤器；

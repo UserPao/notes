@@ -48,8 +48,6 @@ return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
   }
   ```
 
-## 
-
 ## 内部各个数字限制
 
 1. DEFAULT_INITIAL_CAPACITY = 1 << 4 ； 16
@@ -185,7 +183,7 @@ ConcurrentHashMap是弱一致性的
 
 - **jdk1.7中的数据结构**
 
-  ![1585907039978](E:\文档\学习资料\笔记\面经\HashMap.assets\1585907039978.png)
+  ![1585907039978](HashMap.assets\1585907039978.png)
 
   - segment数组
 
@@ -275,7 +273,7 @@ ConcurrentHashMap是弱一致性的
 
   - 1.8中放弃了`Segment`臃肿的设计，取而代之的是采用`Node` + `CAS` + `Synchronized+红黑树 `来保证并发安全进行实现，结构如下：
 
-    ![1585907052503](E:\文档\学习资料\笔记\面经\HashMap.assets\1585907052503.png)
+    ![1585907052503](HashMap.assets\1585907052503.png)
 
   - **sizeCtl**
 

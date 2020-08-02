@@ -282,6 +282,17 @@ syso(s3 == s4);
 
    loadClass、forName()
 
+## loadClass和forName的对比
+
+1. 共同点
+
+   1.都能在运行时，对任意一个类。都能知道该类的属性和方法，对任意一个对象都能调用他的方法和属性
+
+2. 区别
+
+   1. Class.forName得到的class是已经初始化完成的（会执行类的静态代码块）
+   2. Classloader.loadClass得到的class是还没有链接的（例如spring的懒加载）
+
 ## 类的加载过程
 
 1. 编译
@@ -305,17 +316,6 @@ syso(s3 == s4);
 4. 初始化
 
    **有父类先初始化父类，然后初始化自己**,执行类变量赋值和类静态代码块
-
-## loadClass和forName的对比
-
-1. 共同点
-
-   1.都能在运行时，对任意一个类。都能知道该类的属性和方法，对任意一个对象都能调用他的方法和属性
-
-2. 区别
-
-   1. Class.forName得到的class是已经初始化完成的（会执行类的静态代码块）
-   2. Classloader.loadClass得到的class是还没有链接的（例如spring的懒加载）
 
 ## JVM创建对象的过程
 

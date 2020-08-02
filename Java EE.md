@@ -1038,7 +1038,7 @@ public interface Interface {
 
 ​		JVM运行时结构
 
-![图 1.JVM 运行时结构](E:\文档\学习资料\笔记\面经\Java EE.assets\image003.jpg)
+![图 1.JVM 运行时结构](Java EE.assets\image003.jpg)
 
 ​		当程序运行需要某个类的定义时，载入子系统 (class loader subsystem) 装入所需的 class 文件，并在内部建立该类的类型信息，这个类型信息就存贮在方法区。类型信息一般包括该类的方法代码、类变量、成员变量的定义等等。可以说，类型信息就是类的 Java 文件在运行时的内部结构，包含了改类的所有在 Java 文件中定义的信息。
 
@@ -1076,7 +1076,7 @@ CONSTANT_Methodref_info
 
 类方法引用表，包含引用的任何类型方法的描述信息，主要包括类信息索引和名字类型索引。
 
-![图 2. 常量池各表的关系](E:\文档\学习资料\笔记\面经\Java EE.assets\image005.jpg)
+![图 2. 常量池各表的关系](Java EE.assets\image005.jpg)
 
 可以看到，给定任意一个方法的索引，在常量池中找到对应的条目后，可以得到该方法的类索引（class_index）和名字类型索引 (name_and_type_index), 进而得到该方法所属的类型信息和名称及描述符信息（参数，返回值等）。注意到所有的常量字符串都是存储在 CONSTANT_Utf8_info 中供其他表索引的。
 
@@ -1097,7 +1097,7 @@ CONSTANT_Methodref_info
    String s2 = "abcd";
    ```
 
-   ![img](E:\文档\学习资料\笔记\面经\Java EE.assets\20131113170355750.jfif)
+   ![img](Java EE.assets\20131113170355750.jfif)
 
    **假若字符串对象允许改变,那么将会导致各种逻辑错误,比如改变一个对象会影响到另一个独立对象. 严格来说，这种常量池的思想,是一种优化手段.**
 

@@ -251,7 +251,7 @@ private DependencyA dependencyA;
 
 ### Spring IOC容器启动的过程
 
-![1587034584584](E:\文档\学习资料\笔记\面经\SpringIOC整理.assets\1587034584584.png)
+![1587034584584](SpringIOC整理.assets\1587034584584.png)
 
 首先，ioc容器启动的过程分为两部分，第一阶段是**容器的启动过程**，第二阶段是**Bean的实例化过程**，
 
@@ -305,7 +305,7 @@ private DependencyA dependencyA;
 
   -------------------------------------
 
-  ![1587026379172](E:\文档\学习资料\笔记\面经\SpringIOC整理.assets\1587026379172.png)
+  ![1587026379172](SpringIOC整理.assets\1587026379172.png)
 
 ### Bean的生命周期【Bean的实例化过程】
 

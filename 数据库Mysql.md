@@ -404,25 +404,32 @@ MVCC的实现，通过保存数据在某个时间点的快照来实现的。这�
 
 #### 事务隔离级别以及各级别下的并发访问问题
 
-- 脏读 - READ-COMMITTED事务隔离级别以上可以避免
+**Mysql的默认隔离级别是REPEATABLE-READ可重复读**
+
+- **READ-UNCOMMITTED（读未提交）**
+
+  **会有脏读的问题【读到别的事务提交的数据】**
+
+- **READ-COMMITTED（提交读）**
+
+  **解决了脏读的问题**
+
+  **但会不可重读读的问题，读到别的事务提交的数据**
 
   ~~~sql
   select @@tx_isolation;  // 查看事务隔离级别，mysql默认是REPITABLE-READ
   set session transaction isolation level read uncomitted; // 设置当前隔离级别为read uncommitted 
   ~~~
 
-- 不可重复读 -REPEATABLE-READ事务隔离级别以上可以避免
+- **REPEATABLE-READ（可重复读）**【Mysql默认的事务隔离级别】
 
-  ~~~sql
-  # 在多次读取同一数据的时候会出现不同的结果
-  # 解决办法 ，提升事务隔离级别，提升到 REPEATABLE-READ
-  ~~~
+  **解决了不可重复读的问题**
+  
+  **可能出现幻读的问题【读取与搜索条件相匹配的若干行，事务 B 以插入或者删除行的方式修改事务A的结果集，导致事务A看起来像出现幻觉一样】**
+  
+- **SERIALIZABLE（串行化）**
 
-- 幻读 -  SERIALIZABLE 事务隔离级别以上可以避免，直接加表锁 
-
-  ~~~sql
-  # 事务 A 读取与搜索条件相匹配的若干行，事务 B 以插入或者删除行的方式修改事务A的结果集，导致事务A看起来像出现幻觉一样
-  ~~~
+  **解决了幻读的问题**
 
 #### InnoDB可重复度读隔离级别下如何避免幻读
 
