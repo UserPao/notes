@@ -1,20 +1,20 @@
 # Linux下cpu过高的问题
 
-## 第一种
+## 内存使用过高导致CPU满载
 
-### 1. 使用top命令定位异常进程。
+1. 使用top命令定位异常进程。
 
 使用top命令定位异常进程。可以看见12836的CPU和内存占用率都非常高
 
-![img](E:\文档\学习资料\笔记\面经\Linux下的问题.assets\20160503111524410.png)
+![img](Linux下的问题.assets\20160503111524410.png)
 
 此时可以再执行ps -ef | grep java，查看所有的java进程，在结果中找到进程号为12836的进程，即可查看是哪个应用占用的该进程。
 
-### 2. 使用top -H -p 进程号查看异常线程
+2. 使用top -H -p 进程号查看异常线程
 
 ![img](https://img-blog.csdn.net/20160503111715099?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
 
-### 3. 使用printf "%x\n" 线程号将异常线程号转化为16进制
+3. 使用printf "%x\n" 线程号将异常线程号转化为16进制
 
 ![img](https://img-blog.csdn.net/20160503112248412?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
 
@@ -22,7 +22,7 @@
 
 bc是linux的计算器命令
 
-### 4. 使用jstack 进程号|grep 16进制异常线程号 -A90来定位异常代码的位置
+4. 使用jstack 进程号|grep 16进制异常线程号 -A90来定位异常代码的位置
 
 使用jstack 进程号|grep 16进制异常线程号 -A90来定位异常代码的位置（最后的-A90是日志行数，也可以输出为文本文件或 、使用其他数字）。可以看到异常代码的位置。
 
@@ -32,23 +32,22 @@ bc是linux的计算器命令
 
 jstack是java虚拟机自带的一种堆栈跟踪工具。jstack用于打印出给定的java进程ID或core file或远程调试服务的Java堆栈信息。 Jstack工具可以用于生成java虚拟机当前时刻的线程快照。线程快照是当前java虚拟机内每一条线程正在执行的方法堆栈的集合，生成线程快照的主要目的是定位线程出现长时间停顿的原因，如线程间死锁、死循环、请求外部资源导致的长时间等待等。 线程出现停顿的时候通过jstack来查看各个线程的调用堆栈，就可以知道没有响应的线程到底在后台做什么事情，或者等待什么资源。
 
-## 第二种
+## 出现了类似死循环导致cpu负载
 
-### 1.使用top指令，然后按shift + p按照CPU排序
+1. top命令查看当前CPU消耗过高的进程，得到进程id
+2. 根据进程id得到占比较高的线程id
+3. 将线程id转换为十六进制
+4. 根据进程编号用jstack命令查看线程id，可以得到线程的具体堆栈信息
 
-找到占用CPU过高的进程
+## 死锁
 
-### 2. 使用ps -mp pid -o THREAD,tid,time | sort -rn 
+1. 先使用jps查看进程id
 
-获取线程信息，并找到占用CPU过高的线程
+   ![img](Linux%E4%B8%8B%E7%9A%84%E9%97%AE%E9%A2%98.assets/20191207202306504.png)
 
-### 3. 使用echo 'obase=16;[线程id]' | bc或者printf "%x\n" [线程id] 
+2. 找出死锁的线程：`jstack [进程id]`
 
-将需要的线程ID转换成16进制格式
-
-### 4. 使用jstack pid |grep tid -A 30 [线程id的16进制] 
-
-打印出来线程的堆栈信息
+   ![在这里插入图片描述](Linux%E4%B8%8B%E7%9A%84%E9%97%AE%E9%A2%98.assets/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2ppbmd5YW5nVjU4Nw==,size_16,color_FFFFFF,t_70.png)
 
 # 用户态和内核态
 
