@@ -192,6 +192,23 @@ select * from p1,p2 where p1.object_id=p2.object_id and p1.hash_value=4 and p2.h
 
   　　in 是把外表和内表作hash 连接，而exists是对外表作loop循环，每次loop循环再对内表进行查询。一直以来认为exists比in效率高的说法是不准确的。
 
+## Redo Log
+
+- redo log和binlog的区别
+  - redo log 是 InnoDB 引擎特有的。binlog 是 MySQL 的 Server 层实现的，所有引擎都可以使用。
+  - redo log 是物理日志，记录的是在某个数据页上做了什么修改。binlog 是逻辑日志，记录的是DDL和DML操作语句。
+  - redo log 是循环写的，空间固定会用完。binlog 是可以追加写入的。追加写是指 binlog 文件写到一定大小后会切换到下一个，并不会覆盖以前的日志。
+  - redo log+bin log保证crash-safe，bin log日志用于数据恢复和主从复制。
+- **Mysql使用两段提交的方式解决 binlog 和 redo log 的数据一致性的问题**
+  - 崩溃恢复规则
+    - redo log 和 binlog 有一个共同的数据字段，叫 XID。崩溃恢复的时候，会按顺序扫描 redo log：
+      - 如果碰到既有prepare又有commit 的redo log，就直接提交
+      - 如果碰到只有prepare，而没有commit的redo log，就拿着XID去binlog找对应的事务。
+        - binlog无记录，回滚事务
+        - binlog有记录，提交事务
+      - 如果同一阶段提交，redo log写完提交，写bin log时mysql进程崩溃，但由于bin log日志没有修改记录，使用redo log+bin log恢复的数据就是数据库旧的数据
+         如果先写bin log后写redo log，在bin log写完提交之后崩溃，崩溃恢复以后这个事务需要回滚，在之后用redo log+bin log来恢复的时候就多了一个事务出来，
+
 ## 主键模块
 
 ### 为什么不使用uuid作为主键
@@ -218,6 +235,16 @@ select * from p1,p2 where p1.object_id=p2.object_id and p1.hash_value=4 and p2.h
 ## 索引模块
 
 **mysql一张表最多可以创建16个索引**
+
+## 不走索引的情况
+
+1. 模糊查询like
+2. **or 条件中只要有一个字段没有索引**，*使用 union all 代替 or 这样的话有索引例的就会走索引*
+3. **not in 不走索引**
+4. **is not null  不走索引**
+5. **进行了类型转换**
+6. **函数运算**
+7. 
 
 ### 覆盖索引
 
