@@ -152,7 +152,7 @@ select * from p1,p2 where p1.object_id=p2.object_id and p1.hash_value=4 and p2.h
 
 - in
 
-  ​		确定给定的值是否与子查询或列表中的值相匹配。in在查询的时候，**首先查询子查询的表，然后将内表和外表做一个笛卡尔积，然后按照条件进行筛选。所以相对内表比较小的时候，in的速度较快。**
+  ​		确定给定的值是否与子查询或列表中的值相匹配。in在查询的时候，**首先查询子查询的表，然后将内表和外表做一个笛卡尔积，然后按照条件进行筛选。所以内表相对比较小的时候，in的速度较快。**
 
   ~~~sql
    SELECT * FROM user WHERE user.id IN 
@@ -192,7 +192,21 @@ select * from p1,p2 where p1.object_id=p2.object_id and p1.hash_value=4 and p2.h
 
   　　in 是把外表和内表作hash 连接，而exists是对外表作loop循环，每次loop循环再对内表进行查询。一直以来认为exists比in效率高的说法是不准确的。
 
-## Redo Log
+## Redo Log、Bin Log、Undo Log
+
+- Redo Log
+
+  redo log是重做日志，提供前滚操作。
+
+  通常是物理日志，记录的是数据页的物理修改，而不是某一行或几行的修改。**用来恢复提交后的物理数据页。**
+
+  由于数据是先写到buffer pool中的，所以磁盘中数据不是最新的，这时如果发生意外crash，就需要恢复buffer pool中的数据到磁盘中。而redo log就是记录修改后的数据的，按照顺序可以进行恢复
+
+- Undo Log
+
+  存放数据修改被修改前的值，如果这个修改出现问题，则实现回滚操作，保证事务的一致性
+
+- Bin Log
 
 - redo log和binlog的区别
   - redo log 是 InnoDB 引擎特有的。binlog 是 MySQL 的 Server 层实现的，所有引擎都可以使用。
@@ -244,7 +258,6 @@ select * from p1,p2 where p1.object_id=p2.object_id and p1.hash_value=4 and p2.h
 4. **is not null  不走索引**
 5. **进行了类型转换**
 6. **函数运算**
-7. 
 
 ### 覆盖索引
 
@@ -326,6 +339,11 @@ select * from p1,p2 where p1.object_id=p2.object_id and p1.hash_value=4 and p2.h
    由于 B+ 树分支比二叉树更多，所以相同数量的内容，B+ 树的深度更浅，深度代表什么？**代表磁盘 io 次数**啊！数据库设计的时候 B+ 树有多少个分支都是按照磁盘一个簇上最多能放多少节点设计的啊！
 
    所以，涉及到磁盘上查询的数据结构，一般都用 B+ 树
+   
+5. **B+树高度问题**
+
+   1. **高度为2的B+树最多能存放1.8w的数据**
+   2. **高度为3的B+树最多能存放2190w的数据**
 
 
 #### Hash
@@ -724,6 +742,8 @@ CAP理论指的是一个分布式系统最多只能同时满足一致性（Consi
 - 分区容错性
 
   分布式系统中某个节点或者网络分区出现了故障的时候，整个系统仍然能对外提供满足一致性和可用性的服务，也就是说部分故障不影响整体使用。
+
+**若要满足一致性，就不要求可用性，满足一致性要其他系统不能锁定，所以不能满足可用性**
 
 
 

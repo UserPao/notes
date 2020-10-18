@@ -79,6 +79,13 @@ TransactionDefinition接口中定义了五个表示隔离级别的常量
 
   - conditional注解
 
+## SpringBoot优缺点
+
+1. 独立运行的Spring项目
+2. 内嵌servlet容器
+3. 提供starter简化maven配置
+4. 自动配置Spring
+
 ## SpringBoot启动过程
 
 ### 1.创建SpringApplication对象

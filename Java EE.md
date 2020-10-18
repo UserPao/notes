@@ -12,6 +12,11 @@
 
   ​		效率低。
 
+## 继承和实现
+
+继承：如果多个类的某个部分的功能相同，那么可以抽象出一个类出来，把他们的相同部分都放到父类里，让他们都继承这个类。
+实现：如果多个类处理的目标是一样的，但是处理的方法方式不同，那么就定义一个接口，也就是一个标准，让他们的实现这个接口，各自实现自己具体的处理方法来处理那个目标
+
 ## 多态
 
 **指一类事物有多种状态，比如动物有人，猪，狗等多种状态**
@@ -378,6 +383,36 @@ public void cursionDeathLoop(int n){
 
 ## 同步异步，阻塞非阻塞
 
+一次网络IO读操作会涉及到两个系统对象：**用户线程Process**和**内核系统对象Kernel**，两个处理阶段
+
+1. Waiting for the data to be ready - 等待数据准备好**【区分阻塞非阻塞】**
+2. Copying the data from the kernel to the process - 将数据从内核空间的buffer拷贝到用户空间进程的buffer**【区分同步异步】**
+
+- 同步阻塞
+
+  ​		在数据没准备好的时候，**process原地等待kernel准备数据。kernel准备好数据后，process继续等待kernel将数据copy到本身的buffer**。在kernel完成数据的copy后process才会从recvfrom系统调用中返回。
+
+  ![a138fb8b640c4c4aa21e442099b09710-1.jpg](https://resource.shangmayuan.com/droxy-blog/2020/02/09/a138fb8b640c4c4aa21e442099b09710-1.jpg)
+
+- 同步非阻塞
+
+  ​		**process在读recvfrom操做的第一个阶段是不会block等待的，若是kernel数据还没准备好，那么recvfrom会马上返回一个EWOULDBLOCK错误。当kernel准备好数据后，进入处理的第二阶段的时候，process会等待kernel将数据copy到本身的buffer，在kernel完成数据的copy后process才会从recvfrom系统调用中返回。**
+
+  ![5fc3bc3e226a4c1fb325d47a3a025d90-1.jpg](Java%20EE.assets/5fc3bc3e226a4c1fb325d47a3a025d90-1.jpg)
+
+- 异步阻塞
+
+  在数据没准备好的时候，**process原地等待kernel准备数据。kernel自行去准备好数据并将数据从kernel的buffer中copy到process的buffer在通知process读操做完成了，而后process在去处理。**
+
+- 异步非阻塞
+
+  **process在读recvfrom操做的第一个阶段是不会block等待的，若是kernel数据还没准备好，那么recvfrom会马上返回一个EWOULDBLOCK错误。当kernel准备好数据后。kernel自行将数据从kernel的buffer中copy到process的buffer在通知process读操做完成了，而后process在去处理。**
+
+- **同步和阻塞的区别**
+  
+  - **阻塞非阻塞是指process在Kernel数据没有准备好的时候,是原地等待还是不用等待,直接返回一个错误**
+  - **同步异步是指Kernel数据准备好后,kernel自行去准备好数据并将数据从kernel的buffer中copy到process的buffer在通知process读操做完成了，而后process在去处理。**
+
 ### 同步与异步
 
 **强调的是结果通知的方式，侧重的是被调用者通过何种方式回答我**
@@ -468,10 +503,13 @@ IO多路复用有三种方式
      - select是无状态的，即**每次调用select，内核都要重新检查所有被注册的fd的状态**。select返回后，这些状态就被返回了，内核不会记住它们；到了下一次调用，内核依然要重新检查一遍。于是查询的效率很低
      - select能够支持的最大的fd数组的长度是1024
      - select 不是线程安全的，如果你把一个sock加入到select, 然后突然另外一个线程发现，尼玛，这个sock不用，要收回。对不起，这个select 不支持的，如果你丧心病狂的竟然关掉这个sock, select的标准行为是。。呃。。不可预测的， 这个可是写在文档中的哦.
+     - **被监控的fds须要从用户空间拷贝到内核空间**,为了减小数据拷贝带来的性能损坏，内核对被监控的fds集合大小作了限制，而且这个是经过宏控制的，大小不可改变(限制为1024)。
 
 2. **Poll**
 
    poll优化了select的一些问题，参数变得简单一些，**没有了1024的限制**。但其他的问题依旧。
+
+   <span style="color:red">解决1024的限制的操作是:Select存储socket是用的定长数组，poll是用的链表，所以没有了长度限制</span>
 
    - 缺点
      - 依然是无状态
@@ -481,7 +519,7 @@ IO多路复用有三种方式
 
    ​		**epoll可以理解为event poll，不同于忙轮询和无差别轮询，epoll之会把哪个流发生了怎样的I/O事件通知我们**。此时我们对这些流的操作都是有意义的。（复杂度降低到了O(1)）
 
-   ​		epoll是在2.6内核中提出的，是之前的select和poll的增强版本。相对于select和poll来说，epoll更加灵活，**没有描述符限制**。epoll**使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中，这样在用户空间和内核空间的copy只需一次。**		
+   ​		epoll是在2.6内核中提出的，是之前的select和poll的增强版本。相对于select和poll来说，epoll更加灵活，**没有描述符限制**。epoll使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中，这样在用户空间和内核空间的copy只需一次。 同时，**对于高频epoll_wait的可读就绪的fd集合返回的拷贝问题，epoll经过内核与用户空间mmap(内存映射)同一块内存来解决。mmap将用户空间的一块地址和内核空间的一块地址同时映射到相同的一块物理内存地址（无论是用户空间仍是内核空间都是虚拟地址，最终要经过地址映射映射到物理地址），使得这块物理内存对内核和对用户都可见，减小用户态和内核态之间的数据交换。**
 
    - **epoll的主要接口**
 
@@ -1153,3 +1191,10 @@ CONSTANT_Methodref_info
 | {n,}  | 重复n次或者更多  |
 | {n,m} | 重复n次到m次     |
 
+**贪婪模式**
+
+正则表达式中每个元字符匹配一个字符，当使用+之后将会变的贪婪，它将匹配尽可能多的字符
+
+**懒汉模式**
+
+使用问号?字符时，它将尽可能少的匹配字符，既是懒惰模式。
